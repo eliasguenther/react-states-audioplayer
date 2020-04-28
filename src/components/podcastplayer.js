@@ -64,7 +64,9 @@ const playerMachine = Machine({
       type: "final"
       }
     }
-  });
+});
+
+//Actions for machine
 
 const playAudio = (context, _event) => {
     context.audio.play();
@@ -77,6 +79,9 @@ const restartAudio = (context, _event) => {
     context.audio.currentTime = 0;
     video.play();
 }
+
+
+//Main Component
 
 const Podcastplayer = () => {
     
@@ -114,7 +119,10 @@ const Podcastplayer = () => {
         }
 }
 
-const seconds= (n) => {
+
+//Helpers and subcomponents
+
+const seconds = (n) => {
     if(n){
     let time = n / 60;
     let sec = (time + "").split(".")[0] = 0 + "." + (time + "").split(".")[1];
@@ -123,7 +131,7 @@ const seconds= (n) => {
     )} else {
         return 0;
     }
-} 
+}
 
 const remaining = (curr, total) => {
     let n = total - curr;
