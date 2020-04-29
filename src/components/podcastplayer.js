@@ -1,6 +1,7 @@
 import React from "react";
 import { useMachine} from '@xstate/react';
 import { Machine, assign } from 'xstate';
+import { motion } from "framer-motion"
 
 
 const playerMachine = Machine({
@@ -27,20 +28,32 @@ const playerMachine = Machine({
         ready: {
             initial: "paused",
             states: {
-              paused: {
-                on: {
-                  PLAY: {
-                    target: "playing",
-                    actions: ["playAudio"]
-                  }
-                }
-              },
+                paused: {
+                    on: {
+                    PLAY: {
+                        target: "playing",
+                        actions: ["playAudio"]
+                    },  
+                    SCRUBBING: {
+                        target: "paused",
+                        actions: assign({
+                            elapsed: (_context, event) => event.data 
+                        })
+                        },
+                    },
+                },
                 playing: {
                     on: {
                         TIMING: {
                             target: "playing",
                             actions: assign({
                                 elapsed: (context, _event) => context.audio.currentTime
+                            })
+                        },
+                        SCRUBBING: {
+                            target: "playing",
+                            actions: assign({
+                                elapsed: (_context, event) => event.data 
                             })
                         },
                         PAUSE: {
@@ -66,6 +79,9 @@ const playerMachine = Machine({
     }
 });
 
+
+
+
 //Actions for machine
 
 const playAudio = (context, _event) => {
@@ -77,8 +93,9 @@ const pauseAudio = (context, _event) => {
 
 const restartAudio = (context, _event) => {
     context.audio.currentTime = 0;
-    video.play();
+    context.audio.play();
 }
+
 
 
 //Main Component
@@ -90,13 +107,14 @@ const Podcastplayer = () => {
     });
     const ref = React.useRef(null);
     const {duration, elapsed} = current.context;
+    console.log(current.context);
+    
         if(current.value != "failure") {
         return (
             <div className="player">
                 <audio controls ref={ref} onCanPlay={() => {              
                     send("LOADED", {
                         audio: ref.current,
-                    
                     });
                 }}
                 onTimeUpdate={() => {
@@ -113,6 +131,7 @@ const Podcastplayer = () => {
                 </audio>
                 <Button current={current} send={send} />
                 <Timer elapsed={elapsed} duration={duration} />
+                <Bar elapsed={elapsed} duration={duration} current={current} send={send} />
             </div>
         ) } else {
             return("Diese Datei konnte nicht gefunden werden!")
@@ -122,22 +141,49 @@ const Podcastplayer = () => {
 
 //Helpers and subcomponents
 
-export const minutes = seconds => Math.floor(seconds / 60).toLocaleString("en-US", {
+const minutes = seconds => Math.floor(seconds / 60).toLocaleString("en-US", {
     minimumIntegerDigits: 2,
     useGrouping: false
   });
 
-export const seconds = seconds =>
+const seconds = seconds =>
   Math.floor(seconds % 60).toLocaleString("en-US", {
     minimumIntegerDigits: 2,
     useGrouping: false
-  });
+});
+
+const percentage = (curr, total) => {
+    let p = curr / total;
+    return p * 100
+}
 
 const remaining = (curr, total) => {
     let n = total - curr;
     n = Math.floor(n / 60)+ ":" + seconds(n);
     return n;
 }
+
+const calcAudiotime = (ctx, event) => {
+
+    
+    let context = ctx.context;
+    let e = event;
+    console.log(e.target);
+    
+    let targetEl = e.target.getBoundingClientRect();
+
+    let clickPercentage = (e.clientX - targetEl.left) / e.target.offsetWidth;
+
+    let newElapsed = clickPercentage * context.duration;
+
+    context.audio.currentTime = newElapsed;
+
+    console.log(newElapsed);
+
+    return newElapsed;
+
+}
+
 
 const Timer = ({elapsed, duration}) => (
     <div>
@@ -146,6 +192,13 @@ const Timer = ({elapsed, duration}) => (
         Remaining: {remaining(elapsed, duration)}
     </div>
 )
+
+const Bar = ({elapsed, duration, current, send}) => {
+
+    return( 
+    <div onClick={() => send({type: "SCRUBBING", data: calcAudiotime(current, event)})} className="bar"  style={{ width: "200px", height: "20px", background: `linear-gradient(to right, grey 0%, grey ${percentage(elapsed, duration)}%, black ${percentage(elapsed, duration)}%, black 100%)`}}>
+    </div>)
+}
 
 const Button = ({current, send}) => {
     if(current.matches({ready: "playing"})) {
