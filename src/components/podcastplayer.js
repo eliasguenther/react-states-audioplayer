@@ -122,16 +122,16 @@ const Podcastplayer = () => {
 
 //Helpers and subcomponents
 
-const seconds = (n) => {
-    if(n){
-    let time = n / 60;
-    let sec = (time + "").split(".")[0] = 0 + "." + (time + "").split(".")[1];
-    return(
-        Math.floor((sec * 60)).toString().padStart(2, '0')
-    )} else {
-        return 0;
-    }
-}
+export const minutes = seconds => Math.floor(seconds / 60).toLocaleString("en-US", {
+    minimumIntegerDigits: 2,
+    useGrouping: false
+  });
+
+export const seconds = seconds =>
+  Math.floor(seconds % 60).toLocaleString("en-US", {
+    minimumIntegerDigits: 2,
+    useGrouping: false
+  });
 
 const remaining = (curr, total) => {
     let n = total - curr;
@@ -141,7 +141,7 @@ const remaining = (curr, total) => {
 
 const Timer = ({elapsed, duration}) => (
     <div>
-        Elapsed: {(elapsed/60).toFixed()}:{seconds(elapsed)} <br/>
+        Elapsed: {minutes(elapsed)}:{seconds(elapsed)} <br/>
         Duration: {(duration / 60).toFixed()}:{seconds(duration)} <br/>
         Remaining: {remaining(elapsed, duration)}
     </div>

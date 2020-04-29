@@ -4,7 +4,6 @@ import Podcastplayer from "./components/podcastplayer"
 
 const App = () => (
     <>
-    Hello World.
     <Podcastplayer />
     </>
 )
