@@ -164,12 +164,9 @@ const remaining = (curr, total) => {
 }
 
 const calcAudiotime = (ctx, event) => {
-
     
     let context = ctx.context;
     let e = event;
-    console.log(e.target);
-    
     let targetEl = e.target.getBoundingClientRect();
 
     let clickPercentage = (e.clientX - targetEl.left) / e.target.offsetWidth;
@@ -177,9 +174,7 @@ const calcAudiotime = (ctx, event) => {
     let newElapsed = clickPercentage * context.duration;
 
     context.audio.currentTime = newElapsed;
-
-    console.log(newElapsed);
-
+    
     return newElapsed;
 
 }
